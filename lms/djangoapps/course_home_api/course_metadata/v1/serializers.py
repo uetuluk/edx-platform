@@ -33,6 +33,8 @@ class CourseHomeMetadataSerializer(serializers.Serializer):
     """
     course_id = serializers.CharField()
     username = serializers.CharField()
+    end = serializers.DateTimeField()
+    user_has_passing_grade = serializers.BooleanField()
     is_enrolled = serializers.BooleanField()
     is_self_paced = serializers.BooleanField()
     is_staff = serializers.BooleanField()

@@ -93,6 +93,8 @@ class CourseHomeMetadataView(RetrieveAPIView):
         can_load_courseware = courseware_meta.is_microfrontend_enabled_for_user()
 
         data = {
+            'end': course.end,
+            'user_has_passing_grade': courseware_meta.user_has_passing_grade,
             'course_id': course.id,
             'username': username,
             'is_staff': has_access(request.user, 'staff', course_key).has_access,

@@ -16,12 +16,17 @@ from common.djangoapps.student.models import CourseEnrollment
 from lms.djangoapps.course_home_api.progress.v1.serializers import ProgressTabSerializer
 from lms.djangoapps.course_home_api.toggles import course_home_mfe_progress_tab_is_active
 from lms.djangoapps.courseware.access import has_access
+from lms.djangoapps.course_blocks.api import get_course_blocks
+from lms.djangoapps.course_blocks.transformers import start_date
+
 from lms.djangoapps.courseware.courses import get_course_blocks_completion_summary, get_course_with_access, get_studio_url
 from lms.djangoapps.courseware.masquerade import setup_masquerade
 from lms.djangoapps.courseware.views.views import get_cert_data
 
 from lms.djangoapps.grades.api import CourseGradeFactory
 from lms.djangoapps.verify_student.services import IDVerificationService
+from openedx.core.djangoapps.content.block_structure.transformers import BlockStructureTransformers
+from openedx.core.djangoapps.content.block_structure.api import get_block_structure_manager
 from openedx.core.lib.api.authentication import BearerAuthenticationAllowInactiveUser
 
 
@@ -122,11 +127,26 @@ class ProgressTabView(RetrieveAPIView):
 
         enrollment_mode, _ = CourseEnrollment.enrollment_mode_for_user(request.user, course_key)
 
-        course_grade = CourseGradeFactory().read(request.user, course)\
+        # The block structure is used for both the course_grade and has_scheduled content fields
+        # So it is called upfront and reused for optimization purposes
+        collected_block_structure = get_block_structure_manager(course_key).get_collected()
+        course_grade = CourseGradeFactory().read(request.user, collected_block_structure=collected_block_structure)
+
+        # Get has_scheduled_content data
+        transformers = BlockStructureTransformers()
+        transformers += [start_date.StartDateTransformer()]
+        usage_key = collected_block_structure.root_block_usage_key
+        course_blocks = get_course_blocks(
+            request.user,
+            usage_key,
+            transformers=transformers,
+            collected_block_structure=collected_block_structure,
+            include_has_scheduled_content=True
+        )
+        has_scheduled_content = course_blocks.get_xblock_field(usage_key, 'has_scheduled_content')
 
         descriptor = modulestore().get_course(course_key)
         grading_policy = descriptor.grading_policy
-
         verification_status = IDVerificationService.user_status(request.user)
         verification_link = None
         if verification_status['status'] is None or verification_status['status'] == 'expired':
@@ -143,6 +163,7 @@ class ProgressTabView(RetrieveAPIView):
             'certificate_data': get_cert_data(request.user, course, enrollment_mode, course_grade),
             'completion_summary': get_course_blocks_completion_summary(course_key, request.user),
             'course_grade': course_grade,
+            'has_scheduled_content': has_scheduled_content,
             'section_scores': course_grade.chapter_grades.values(),
             'enrollment_mode': enrollment_mode,
             'grading_policy': grading_policy,

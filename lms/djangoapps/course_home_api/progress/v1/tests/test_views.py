@@ -3,6 +3,7 @@ Tests for Progress Tab API in the Course Home API
 """
 
 import ddt
+import mock
 from django.urls import reverse
 from edx_toggles.toggles.testutils import override_waffle_flag
 
@@ -97,3 +98,12 @@ class ProgressTabTestViews(BaseCourseHomeTests):
         # Masquerade as verified user
         self.update_masquerade(username=verified_user.username)
         assert self.client.get(self.url).data.get('enrollment_mode') == 'verified'
+
+    @override_experiment_waffle_flag(COURSE_HOME_MICROFRONTEND, active=True)
+    @override_waffle_flag(COURSE_HOME_MICROFRONTEND_PROGRESS_TAB, active=True)
+    def test_has_scheduled_content_data(self):
+        CourseEnrollment.enroll(self.user, self.course.id)
+        with mock.patch('lms.djangoapps.course_blocks.transformers.start_date.check_start_date', return_value=False):
+            response = self.client.get(self.url)
+            assert response.status_code == 200
+            assert response.json()['has_scheduled_content']

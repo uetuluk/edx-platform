@@ -86,6 +86,7 @@ class ProgressTabSerializer(serializers.Serializer):
     certificate_data = CertificateDataSerializer()
     completion_summary = serializers.DictField()
     course_grade = CourseGradeSerializer()
+    has_scheduled_content = serializers.BooleanField()
     section_scores = SectionScoresSerializer(many=True)
     enrollment_mode = serializers.CharField()
     grading_policy = GradingPolicySerializer()
