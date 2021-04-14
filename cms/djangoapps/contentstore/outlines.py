@@ -129,6 +129,10 @@ def _make_section_data(section):
                     hide_from_toc=sequence.hide_from_toc,
                     visible_to_staff_only=sequence.visible_to_staff_only,
                 ),
+                user_partition_groups={
+                    part_id: frozenset(group_ids)
+                    for part_id, group_ids in sequence.group_access.items()
+                },
             )
         )
 
@@ -140,6 +144,10 @@ def _make_section_data(section):
             hide_from_toc=section.hide_from_toc,
             visible_to_staff_only=section.visible_to_staff_only,
         ),
+        user_partition_groups={
+            part_id: frozenset(group_ids)
+            for part_id, group_ids in section.group_access.items()
+        },
     )
     return section_data, section_errors
 
