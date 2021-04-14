@@ -265,7 +265,8 @@ def _get_allowlist_cert_status(user, course_key):
     if not _is_on_certificate_allowlist(user, course_key):
         return None
 
-    return _get_cert_status_common(user, course_key)
+    course = _get_course(course_key)
+    return _get_cert_status_common(user, course_key, course)
 
 
 def _get_v2_cert_status(user, course_key):
@@ -278,10 +279,22 @@ def _get_v2_cert_status(user, course_key):
     if not _is_using_v2_course_certificates(course_key):
         return None
 
-    return _get_cert_status_common(user, course_key)
+    if _is_ccx_course(course_key):
+        return None
+
+    course = _get_course(course_key)
+    if _is_beta_tester(user, course):
+        return None
+
+    if not _has_passing_grade(user, course):
+        status = CertificateStatuses.notpassing
+        log.info(f'{user.id} does not have a passing grade in {course_key}. Certificate status will be {status}.')
+        return status
+
+    return _get_cert_status_common(user, course_key, course)
 
 
-def _get_cert_status_common(user, course_key):
+def _get_cert_status_common(user, course_key, course):
     """
     Determine the certificate status for this user, in this course run.
 
@@ -295,7 +308,6 @@ def _get_cert_status_common(user, course_key):
     if not modes_api.is_eligible_for_certificate(enrollment_mode):
         return None
 
-    course = _get_course(course_key)
     if not has_html_certificates_enabled(course):
         return None
 
@@ -304,11 +316,6 @@ def _get_cert_status_common(user, course_key):
         status = CertificateStatuses.unavailable
         log.info(f'{user.id} : {course_key} is on the certificate invalidation list. Certificate status will be '
                  f'{status}.')
-        return status
-
-    if not _has_passing_grade(user, course):
-        status = CertificateStatuses.notpassing
-        log.info(f'{user.id} does not have a passing grade in {course_key}. Certificate status will be {status}.')
         return status
 
     if not IDVerificationService.user_is_verified(user):
