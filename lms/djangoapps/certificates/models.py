@@ -44,6 +44,12 @@ class CertificateStatuses:
     Not all of these statuses are currently used. Some are kept for historical reasons and because existing course
     certificates may have been granted that status.
 
+    The following statuses are set by V2 of course certificates:
+      downloadable
+      notpassing
+      unavailable
+      unverified
+
     audit_notpassing    - User is in the audit track and has not achieved a passing grade.
     audit_passing       - User is in the audit track and has achieved a passing grade.
     deleted             - The PDF certificate has been deleted.
