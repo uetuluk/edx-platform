@@ -10,22 +10,21 @@ from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
+from django.contrib.sites.models import Site
 from edx_django_utils.monitoring import set_code_owner_attribute
 from opaque_keys.edx.keys import CourseKey
 from MySQLdb import OperationalError
 
-from openedx.core.djangoapps.credentials.utils import get_credentials_api_client
-from openedx.core.djangoapps.site_configuration.models import SiteConfiguration
-from lms.djangoapps.certificates.api import get_recently_modified_certificates
-from lms.djangoapps.grades.api import get_recently_modified_grades
-from lms.djangoapps.certificates.models import CertificateStatuses, GeneratedCertificate
-from openedx.core.djangoapps.programs.signals import handle_course_cert_changed, handle_course_cert_awarded
-from openedx.core.djangoapps.credentials.models import CredentialsApiConfig
-from openedx.core.djangoapps.credentials.helpers import is_learner_records_enabled_for_org
 from common.djangoapps.course_modes.models import CourseMode
-from lms.djangoapps.grades.api import CourseGradeFactory
+from lms.djangoapps.certificates.api import get_recently_modified_certificates
+from lms.djangoapps.grades.api import CourseGradeFactory, get_recently_modified_grades
+from lms.djangoapps.certificates.models import CertificateStatuses, GeneratedCertificate
 from openedx.core.djangoapps.catalog.utils import get_programs
-from django.contrib.sites.models import Site
+from openedx.core.djangoapps.credentials.helpers import is_learner_records_enabled_for_org
+from openedx.core.djangoapps.credentials.models import CredentialsApiConfig
+from openedx.core.djangoapps.credentials.utils import get_credentials_api_client
+from openedx.core.djangoapps.programs.signals import handle_course_cert_changed, handle_course_cert_awarded
+from openedx.core.djangoapps.site_configuration.models import SiteConfiguration
 
 logger = get_task_logger(__name__)
 
