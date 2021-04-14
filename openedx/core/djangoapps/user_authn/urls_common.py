@@ -58,6 +58,13 @@ urlpatterns = [
         login.LoginSessionView.as_view(),
         name="user_api_login_session"
     ),
+
+    # Created version 2 of getting login session which supports username
+    url(
+        r'^api/user/v2/account/login_session/$',
+        login.LoginSessionView.as_view(),
+        name="user_api_login_session_version_two"
+    ),
     # `user_api` prefix is preserved for backwards compatibility.
     url(r'^user_api/v1/account/login_session/$', login.LoginSessionView.as_view(),
         name="user_api_login_session_legacy"),

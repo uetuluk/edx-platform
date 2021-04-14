@@ -1050,6 +1050,16 @@ class LoginSessionViewTest(ApiTestCase):
             {'category': 'conversion', 'provider': None, 'label': track_label}
         )
 
+    def test_login_with_username(self):
+        UserFactory.create(username=self.USERNAME, email=self.EMAIL, password=self.PASSWORD)
+        data = {
+            "username": self.USERNAME,
+            "password": self.PASSWORD,
+        }
+        self.url = reverse("user_api_login_session_version_two")
+        response = self.client.post(self.url, data)
+        self.assertHttpOK(response)
+
     def test_session_cookie_expiry(self):
         # Create a test user
         UserFactory.create(username=self.USERNAME, email=self.EMAIL, password=self.PASSWORD)

@@ -13,9 +13,11 @@ import urllib
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as django_login
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
 from django.contrib import admin
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -94,18 +96,23 @@ def _do_third_party_auth(request):
         raise AuthFailedError(message, error_code='third-party-auth-with-no-linked-account')  # lint-amnesty, pylint: disable=raise-missing-from
 
 
-def _get_user_by_email(request):
+def _get_user_by_email_or_username(request):
     """
-    Finds a user object in the database based on the given request, ignores all fields except for email.
+    Finds a user object in the database based on the given request, ignores all fields except for email and username.
     """
-    if 'email' not in request.POST or 'password' not in request.POST:
+    if not (
+        'email' in request.POST or 'username' in request.POST
+    ) or 'password' not in request.POST:
         raise AuthFailedError(_('There was an error receiving your login information. Please email us.'))
 
-    email = request.POST['email']
+    email = request.POST.get('email', None)
+    username = request.POST.get('username', None)
 
     try:
-        return User.objects.get(email=email)
-    except User.DoesNotExist:
+        return get_user_model().objects.get(
+            Q(username=username) | Q(email=email)
+        )
+    except get_user_model().DoesNotExist:
         digest = hashlib.shake_128(email.encode('utf-8')).hexdigest(16)  # pylint: disable=too-many-function-args
         AUDIT_LOG.warning(f"Login failed - Unknown user email {digest}")
 
@@ -436,7 +443,7 @@ def login_user(request):
         request (HttpRequest)
 
     Required params:
-        email, password
+        email or username, password
 
     Optional params:
         analytics: a JSON-encoded object with additional info to include in the login analytics event. The only
@@ -494,7 +501,7 @@ def login_user(request):
                 response_content = e.get_response()
                 return JsonResponse(response_content, status=403)
         else:
-            user = _get_user_by_email(request)
+            user = _get_user_by_email_or_username(request)
 
         _check_excessive_login_attempts(user)
 
@@ -595,7 +602,6 @@ class LoginSessionView(APIView):
     def get(self, request):
         return HttpResponse(get_login_session_form(request).to_json(), content_type="application/json")  # lint-amnesty, pylint: disable=http-response-with-content-type-json
 
-    @method_decorator(require_post_params(["email", "password"]))
     @method_decorator(csrf_protect)
     def post(self, request):
         """Log in a user.
@@ -605,7 +611,7 @@ class LoginSessionView(APIView):
         Example Usage:
 
             POST /api/user/v1/login_session
-            with POST params `email`, `password`.
+            with POST params `email` or `username`, `password`.
 
             200 {'success': true}
 
