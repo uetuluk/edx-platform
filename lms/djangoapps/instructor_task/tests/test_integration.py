@@ -19,7 +19,7 @@ from celery.states import FAILURE, SUCCESS
 from django.contrib.auth.models import User  # lint-amnesty, pylint: disable=imported-auth-user
 from django.test.utils import override_settings
 from django.urls import reverse
-from mock import patch
+from mock import patch  # lint-amnesty, pylint: disable=reimported
 
 from capa.responsetypes import StudentInputError
 from capa.tests.response_xml_factory import CodeResponseXMLFactory, CustomResponseXMLFactory
