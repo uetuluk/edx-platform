@@ -34,6 +34,7 @@ from openedx.core.djangoapps.catalog.tests.factories import (
     SeatFactory,
     generate_course_run_key
 )
+from openedx.core.djangoapps.content.course_overviews.tests.factories import CourseOverviewFactory
 from openedx.core.djangoapps.programs import ALWAYS_CALCULATE_PROGRAM_PRICE_AS_ANONYMOUS_USER
 from openedx.core.djangoapps.programs.tests.factories import ProgressFactory
 from openedx.core.djangoapps.programs.utils import (
@@ -636,19 +637,28 @@ class TestProgramProgressMeter(TestCase):
         Verify that the method can find course run certificates when not mocked out.
         """
         downloadable = CourseRunFactory()
+        course_availability_in_future = CourseRunFactory()
+        # CourseOverviewFactory.create(self_paced=False)
         generating = CourseRunFactory()
         unknown = CourseRunFactory()
-        course = CourseFactory(course_runs=[downloadable, generating, unknown])
+        course = CourseFactory(course_runs=[downloadable, course_availability_in_future, generating, unknown])
         program = ProgramFactory(courses=[course])
         mock_get_programs.return_value = [program]
 
-        self._create_enrollments(downloadable['key'], generating['key'], unknown['key'])
+        self._create_enrollments(
+            downloadable['key'],
+            # course_availability_in_future['key'],
+            generating['key'],
+            unknown['key']
+        )
 
         self._create_certificates(downloadable['key'], mode=CourseMode.VERIFIED)
+        # self._create_certificates(course_availability_in_future['key'], mode=CourseMode.VERIFIED)
         self._create_certificates(generating['key'], status='generating', mode=CourseMode.HONOR)
         self._create_certificates(unknown['key'], status='unknown')
 
         meter = ProgramProgressMeter(self.site, self.user)
+        print(meter.completed_course_runs)
         self.assertCountEqual(
             meter.completed_course_runs,
             [
