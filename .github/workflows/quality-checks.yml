@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - open-release/lilac.master
+  workflow_dispatch:
 
 jobs:
   run_tests:
