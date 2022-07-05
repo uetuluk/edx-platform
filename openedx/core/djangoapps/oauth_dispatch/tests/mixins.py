@@ -16,7 +16,8 @@ class AccessTokenMixin:
     """ Mixin for tests dealing with OAuth 2 access tokens. """
 
     def assert_valid_jwt_access_token(self, access_token, user, scopes=None, should_be_expired=False, filters=None,
-                                      should_be_asymmetric_key=False, should_be_restricted=None, aud=None, secret=None):
+                                      should_be_asymmetric_key=False, should_be_restricted=None, aud=None, secret=None,
+                                      expires_in=None, grant_type=None):
         """
         Verify the specified JWT access token is valid, and belongs to the specified user.
         Returns:
@@ -94,7 +95,12 @@ class AccessTokenMixin:
         if should_be_restricted is not None:
             expected['is_restricted'] = should_be_restricted
 
+        expected['grant_type'] = grant_type or ''
+
         self.assertDictContainsSubset(expected, payload)
+
+        if expires_in:
+            assert payload['exp'] == payload['iat'] + expires_in
 
         # Since we suppressed checking of expiry
         # in the claim in the above check, because we want

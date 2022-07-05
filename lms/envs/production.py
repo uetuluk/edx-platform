@@ -109,8 +109,8 @@ EDX_PLATFORM_REVISION = REVISION_CONFIG.get('EDX_PLATFORM_REVISION', EDX_PLATFOR
 BROKER_POOL_LIMIT = 0
 BROKER_CONNECTION_TIMEOUT = 1
 
-# For the Result Store, use the django cache named 'celery'
-CELERY_RESULT_BACKEND = 'django-cache'
+# Allow env to configure celery result backend with default set to django-cache
+CELERY_RESULT_BACKEND = ENV_TOKENS.get('CELERY_RESULT_BACKEND', 'django-cache')
 
 # When the broker is behind an ELB, use a heartbeat to refresh the
 # connection and to detect if it has been dropped.
@@ -1071,3 +1071,10 @@ REST_FRAMEWORK.update(ENV_TOKENS.get('REST_FRAMEWORK', {}))
 
 ############################# CELERY ############################
 CELERY_IMPORTS.extend(ENV_TOKENS.get('CELERY_EXTRA_IMPORTS', []))
+
+# keys for  big blue button live provider
+COURSE_LIVE_GLOBAL_CREDENTIALS["BIG_BLUE_BUTTON"] = {
+    "KEY": ENV_TOKENS.get('BIG_BLUE_BUTTON_GLOBAL_KEY', None),
+    "SECRET": ENV_TOKENS.get('BIG_BLUE_BUTTON_GLOBAL_SECRET', None),
+    "URL": ENV_TOKENS.get('BIG_BLUE_BUTTON_GLOBAL_URL', None),
+}

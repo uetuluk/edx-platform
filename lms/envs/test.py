@@ -484,6 +484,10 @@ ECOMMERCE_PUBLIC_URL_ROOT = None
 ENTERPRISE_API_URL = 'http://enterprise.example.com/enterprise/api/v1/'
 ENTERPRISE_CONSENT_API_URL = 'http://enterprise.example.com/consent/api/v1/'
 
+########################## ENTERPRISE LEARNER PORTAL ##############################
+ENTERPRISE_LEARNER_PORTAL_NETLOC = 'example.com:8734'
+ENTERPRISE_LEARNER_PORTAL_BASE_URL = 'http://' + ENTERPRISE_LEARNER_PORTAL_NETLOC
+
 ACTIVATION_EMAIL_FROM_ADDRESS = 'test_activate@edx.org'
 
 TEMPLATES[0]['OPTIONS']['debug'] = True
@@ -636,3 +640,10 @@ SAVE_FOR_LATER_EMAIL_RATE_LIMIT = '5/m'
 #################### Network configuration ####################
 # Tests are not behind any proxies
 CLOSEST_CLIENT_IP_FROM_HEADERS = []
+
+
+COURSE_LIVE_GLOBAL_CREDENTIALS["BIG_BLUE_BUTTON"] = {
+    "KEY": "***",
+    "SECRET": "***",
+    "URL": "***",
+}
